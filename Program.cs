@@ -29,9 +29,12 @@ namespace JurassicPark
         {
             dinosaurs.Add(newDinosaur);
         }
+        public void DeleteDinosaur(Dinosaur deadDinosaur)
+        {
+            dinosaurs.Remove(deadDinosaur);
+        }
         public Dinosaur FindOneDinosaur(string name)
         {
-
             Dinosaur foundDinosaur = dinosaurs.FirstOrDefault(dinosaur => dinosaur.Name == name);
             return foundDinosaur;
         }
@@ -69,7 +72,8 @@ namespace JurassicPark
 
             while (keepGoing)
             {
-                Console.WriteLine("What would you like to do?(A)dd a dino (V) all dinos (Q)uit");
+                Console.WriteLine();
+                Console.WriteLine("What would you like to do?\n(A)dd a dino\n(V)iew all dinos\n(S)ummarize the diet types\n(D)elete a dino\n(Q)uit");
                 var choice = Console.ReadLine().ToUpper();
 
                 if (choice == "A")
@@ -77,7 +81,7 @@ namespace JurassicPark
                     var dinosaur = new Dinosaur();
 
                     dinosaur.Name = PromptForString("What is the name of the dinosaur? ");
-                    dinosaur.DietType = PromptForString("What is the diet of the dinosaur? ");
+                    dinosaur.DietType = PromptForString("Is the dinosaur a carnivore or an herbivore? ");
                     dinosaur.Weight = PromptForInteger("How much does the dinosaur weigh in pounds? ");
                     dinosaur.EnclosureNumber = PromptForInteger("What enclosure number are they in? ");
                     dinosaur.WhenAcquired = DateTime.Now;
@@ -107,6 +111,21 @@ namespace JurassicPark
                 }
                 else if (choice == "D")
                 {
+                    var deleteDinosaurName = PromptForString("What is the name of the dinosaur you'd like to delete? ");
+
+                    var deleteFoundDinosaur = database.FindOneDinosaur(deleteDinosaurName);
+                    if (deleteFoundDinosaur != null)
+                    {
+                        var areYouSureDelete = PromptForString($"Are you sure you'd like to remove {deleteFoundDinosaur.Name} from the database? (Y/N)").ToUpper();
+                        if (areYouSureDelete == "Y")
+                        {
+                            database.DeleteDinosaur(deleteFoundDinosaur);
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("No such dinosaur found!");
+                    }
                     //Remove
                     //This command will prompt the user for a dinosaur name then find and delete the dinosaur with that name.
                 }
@@ -117,6 +136,10 @@ namespace JurassicPark
                 }
                 else if (choice == "S")
                 {
+                    var dinosaurs = database.GetAllDinosaurs();
+                    var carnivores = dinosaurs.Where(dinosaur => dinosaur.DietType == "carnivore").Count();
+                    var herbivores = dinosaurs.Where(dinosaur => dinosaur.DietType == "herbivore").Count();
+                    Console.WriteLine($"There are {carnivores} carnivores and {herbivores} herbivores in the park.");
                     //Summary
                     //This command will display the number of carnivores and the number of herbivores.
                 }
