@@ -38,6 +38,10 @@ namespace JurassicPark
             Dinosaur foundDinosaur = dinosaurs.FirstOrDefault(dinosaur => dinosaur.Name == name);
             return foundDinosaur;
         }
+        public void TransferDinosaur(Dinosaur dinoToTransfer, int newEnclosureNumber)
+        {
+            dinoToTransfer.EnclosureNumber = newEnclosureNumber;
+        }
 
 
     }
@@ -73,7 +77,7 @@ namespace JurassicPark
             while (keepGoing)
             {
                 Console.WriteLine();
-                Console.WriteLine("What would you like to do?\n(A)dd a dino\n(V)iew all dinos\n(S)ummarize the diet types\n(D)elete a dino\n(Q)uit");
+                Console.WriteLine("What would you like to do?\n(A)dd a dino\n(V)iew all dinos\n(T)ransfer a dino to another area\n(S)ummarize the diet types\n(D)elete a dino\n(Q)uit");
                 var choice = Console.ReadLine().ToUpper();
 
                 if (choice == "A")
@@ -81,7 +85,21 @@ namespace JurassicPark
                     var dinosaur = new Dinosaur();
 
                     dinosaur.Name = PromptForString("What is the name of the dinosaur? ");
-                    dinosaur.DietType = PromptForString("Is the dinosaur a carnivore or an herbivore? ");
+                    var dietNotCarnOrHerb = true;
+                    while (dietNotCarnOrHerb)
+                    {
+                        dinosaur.DietType = PromptForString("Is the dinosaur a (c)arnivore or an (h)erbivore? ").ToUpper();
+                        if (dinosaur.DietType == "C")
+                        {
+                            dinosaur.DietType = "carnivore";
+                            dietNotCarnOrHerb = false;
+                        }
+                        else if (dinosaur.DietType == "H")
+                        {
+                            dinosaur.DietType = "herbivore";
+                            dietNotCarnOrHerb = false;
+                        }
+                    }
                     dinosaur.Weight = PromptForInteger("How much does the dinosaur weigh in pounds? ");
                     dinosaur.EnclosureNumber = PromptForInteger("What enclosure number are they in? ");
                     dinosaur.WhenAcquired = DateTime.Now;
@@ -97,17 +115,38 @@ namespace JurassicPark
                 else if (choice == "V")
                 {
                     var dinosaurs = database.GetAllDinosaurs();
-                    foreach (var dinosaur in dinosaurs)
+                    if (dinosaurs.Count() == 0)
                     {
-                        // And print details
-                        Console.WriteLine(dinosaur.Description());
-                        Console.WriteLine();
-                        //View
-                        //This command will ask the user if they wish to see the dinosaurs in Name or EnclosureNumber order. 
-                        //Based on that choice, the list of dinosaurs should be shown in the correct order.
-                        // If there no dinosaurs in the park, print out a special message to the user.
+                        Console.WriteLine("There aren't any dinos here!");
                     }
-                    Console.WriteLine("Remember to add LINQ features to sort the list");
+                    else
+                    {
+                        var viewOrder = PromptForString("View by (N)ame or by (E)nclosure number? ").ToUpper();
+                        if (viewOrder == "N")
+                        {
+                            var query = dinosaurs.OrderBy(dinosaur => dinosaur.Name);
+                            Console.WriteLine();
+                            foreach (var dinosaur in query)
+                            {
+                                Console.WriteLine(dinosaur.Description());
+                                Console.WriteLine();
+                            }
+                        }
+                        else if (viewOrder == "E")
+                        {
+                            var query = dinosaurs.OrderBy(dinosaur => dinosaur.EnclosureNumber);
+                            Console.WriteLine();
+                            foreach (var dinosaur in query)
+                            {
+                                Console.WriteLine(dinosaur.Description());
+                                Console.WriteLine();
+                            }
+                            //View
+                            //This command will ask the user if they wish to see the dinosaurs in Name or EnclosureNumber order. 
+                            //Based on that choice, the list of dinosaurs should be shown in the correct order.
+                            // If there no dinosaurs in the park, print out a special message to the user.
+                        }
+                    }
                 }
                 else if (choice == "D")
                 {
@@ -131,6 +170,19 @@ namespace JurassicPark
                 }
                 else if (choice == "T")
                 {
+                    var transferDinosaurName = PromptForString("What is the name of the dinosaur you'd like to transfer? ");
+
+                    var transferFoundDinosaur = database.FindOneDinosaur(transferDinosaurName);
+                    if (transferFoundDinosaur != null)
+                    {
+                        var newEnclosure = PromptForInteger("What enclosure is this dinosaur moving to? ");
+                        database.TransferDinosaur(transferFoundDinosaur, newEnclosure);
+                        Console.WriteLine($"{transferFoundDinosaur.Name} has been moved to enclosure #: {transferFoundDinosaur.EnclosureNumber} !");
+                    }
+                    else
+                    {
+                        Console.WriteLine("No such dinosaur!");
+                    }
                     //Transfer
                     //This command will prompt the user for a dinosaur name and a new EnclosureNumber and update that dino's information.
                 }
